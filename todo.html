@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vibe Tasks</title>
+    <title>Vibe Tasks v2</title>
     <style>
         :root {
             --primary: #6a11cb;
@@ -12,6 +12,7 @@
             --glass-border: rgba(255, 255, 255, 0.18);
             --text: #333;
             --text-light: #fff;
+            --accent: #ff0080;
         }
 
         body {
@@ -26,7 +27,7 @@
             overflow: hidden;
         }
 
-        /* 背景の装飾（光の玉） */
+        /* 背景の装飾 */
         .orb {
             position: absolute;
             border-radius: 50%;
@@ -34,20 +35,20 @@
             z-index: 0;
             animation: float 10s infinite ease-in-out;
         }
-        .orb-1 { top: 10%; left: 20%; width: 300px; height: 300px; background: #ff9a9e; animation-delay: 0s; }
-        .orb-2 { bottom: 10%; right: 20%; width: 250px; height: 250px; background: #a18cd1; animation-delay: -5s; }
+        .orb-1 { top: 5%; left: 15%; width: 350px; height: 350px; background: #ff9a9e; animation-delay: 0s; }
+        .orb-2 { bottom: 5%; right: 15%; width: 300px; height: 300px; background: #a18cd1; animation-delay: -5s; }
 
         @keyframes float {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-20px); }
         }
 
-        /* メインコンテナ（グラスモーフィズム） */
+        /* メインコンテナ */
         .app-container {
             position: relative;
-            width: 400px;
+            width: 450px;
             max-width: 90%;
-            height: 600px;
+            height: 700px;
             background: var(--glass);
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             backdrop-filter: blur(14px);
@@ -64,9 +65,39 @@
             color: var(--text-light);
             font-weight: 200;
             margin-top: 0;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             letter-spacing: 1px;
             text-align: center;
+        }
+
+        /* フィルタタブ */
+        .filters {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 5px;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-light);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            opacity: 0.7;
+        }
+
+        .filter-btn.active {
+            background: #fff;
+            color: var(--primary);
+            opacity: 1;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         /* 入力エリア */
@@ -114,13 +145,11 @@
             overflow-y: auto;
             flex: 1;
         }
-
-        /* スクロールバーのカスタマイズ */
         ul::-webkit-scrollbar { width: 6px; }
         ul::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
 
         li {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.8);
             margin-bottom: 10px;
             padding: 15px 20px;
             border-radius: 15px;
@@ -130,22 +159,29 @@
             transition: 0.3s;
             cursor: pointer;
             animation: slideIn 0.3s ease-out;
+            position: relative;
+            overflow: hidden;
         }
 
         @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        li:hover {
-            background: rgba(255, 255, 255, 0.95);
-            transform: translateX(5px);
+        li span {
+            flex: 1;
+            margin-right: 10px;
+            word-break: break-all;
         }
 
         li.completed {
-            background: rgba(255, 255, 255, 0.3);
-            text-decoration: line-through;
+            background: rgba(255, 255, 255, 0.4);
             color: #666;
+        }
+
+        li.completed span {
+            text-decoration: line-through;
+            opacity: 0.7;
         }
 
         .delete-btn {
@@ -156,9 +192,31 @@
             font-size: 1.2rem;
             opacity: 0;
             transition: 0.3s;
+            padding: 5px;
         }
 
         li:hover .delete-btn { opacity: 1; }
+        
+        /* ステータスバー */
+        .status-bar {
+            margin-top: 1rem;
+            color: var(--text-light);
+            font-size: 0.8rem;
+            text-align: center;
+            opacity: 0.8;
+        }
+        
+        .clear-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.5);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-left: 10px;
+        }
+        .clear-btn:hover { background: rgba(255,255,255,0.2); }
 
     </style>
 </head>
@@ -168,68 +226,135 @@
     <div class="orb orb-2"></div>
 
     <div class="app-container">
-        <h1>TASKS</h1>
+        <h1>TASKS v2</h1>
         
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterTasks('all')">All</button>
+            <button class="filter-btn" onclick="filterTasks('active')">Active</button>
+            <button class="filter-btn" onclick="filterTasks('completed')">Done</button>
+        </div>
+
         <div class="input-group">
-            <input type="text" id="todo-input" placeholder="Add a new task...">
+            <input type="text" id="todo-input" placeholder="What needs to be done?">
             <button id="add-btn">+</button>
         </div>
 
         <ul id="todo-list">
             </ul>
+        
+        <div class="status-bar">
+            <span id="items-left">0 items left</span>
+            <button class="clear-btn" onclick="clearCompleted()">Clear Done</button>
+        </div>
     </div>
 
     <script>
         const input = document.getElementById('todo-input');
         const addBtn = document.getElementById('add-btn');
         const list = document.getElementById('todo-list');
+        const itemsLeft = document.getElementById('items-left');
+        const filterBtns = document.querySelectorAll('.filter-btn');
 
-        // タスクを追加する機能
+        let tasks = JSON.parse(localStorage.getItem('vibeTasks')) || [];
+        let currentFilter = 'all';
+
+        // 初期表示
+        renderTasks();
+
+        function saveData() {
+            localStorage.setItem('vibeTasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
         function addTask() {
             const text = input.value.trim();
             if (text === '') return;
 
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <span>${text}</span>
-                <button class="delete-btn">×</button>
-            `;
+            const newTask = {
+                id: Date.now(),
+                text: text,
+                completed: false
+            };
 
-            // 完了の切り替え
-            li.addEventListener('click', (e) => {
-                if (e.target.className !== 'delete-btn') {
-                    li.classList.toggle('completed');
-                }
-            });
-
-            // 削除機能
-            li.querySelector('.delete-btn').addEventListener('click', () => {
-                li.style.opacity = '0';
-                li.style.transform = 'translateX(20px)';
-                setTimeout(() => li.remove(), 300);
-            });
-
-            list.prepend(li); // 新しいタスクを上に追加
+            tasks.unshift(newTask); // 新しいものを上に
+            saveData();
             input.value = '';
             input.focus();
         }
 
-        addBtn.addEventListener('click', addTask);
+        function toggleTask(id) {
+            tasks = tasks.map(task => {
+                if (task.id === id) {
+                    return { ...task, completed: !task.completed };
+                }
+                return task;
+            });
+            saveData();
+        }
 
-        // Enterキーでも追加できるようにする
+        function deleteTask(id) {
+            tasks = tasks.filter(task => task.id !== id);
+            saveData();
+        }
+
+        // ダブルクリックで編集
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            const newText = prompt("Edit your task:", task.text);
+            if (newText !== null && newText.trim() !== "") {
+                task.text = newText.trim();
+                saveData();
+            }
+        }
+
+        function filterTasks(filter) {
+            currentFilter = filter;
+            
+            // ボタンの見た目更新
+            filterBtns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            renderTasks();
+        }
+        
+        function clearCompleted() {
+            if(confirm("Delete all completed tasks?")) {
+                tasks = tasks.filter(task => !task.completed);
+                saveData();
+            }
+        }
+
+        function renderTasks() {
+            list.innerHTML = '';
+            
+            let filteredTasks = tasks;
+            if (currentFilter === 'active') filteredTasks = tasks.filter(t => !t.completed);
+            if (currentFilter === 'completed') filteredTasks = tasks.filter(t => t.completed);
+
+            filteredTasks.forEach(task => {
+                const li = document.createElement('li');
+                if (task.completed) li.classList.add('completed');
+                
+                li.innerHTML = `
+                    <span ondblclick="editTask(${task.id})" title="Double click to edit">${task.text}</span>
+                    <button class="delete-btn" onclick="deleteTask(${task.id})">×</button>
+                `;
+
+                // テキスト部分クリックで完了切り替え
+                li.querySelector('span').addEventListener('click', () => toggleTask(task.id));
+
+                list.appendChild(li);
+            });
+
+            // 残りタスク数更新
+            const activeCount = tasks.filter(t => !t.completed).length;
+            itemsLeft.textContent = `${activeCount} item${activeCount !== 1 ? 's' : ''} left`;
+        }
+
+        addBtn.addEventListener('click', addTask);
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addTask();
         });
-
-        // サンプルタスク
-        window.onload = () => {
-            const samples = ["Buy coffee ☕️", "Design review", "Read a book"];
-            samples.forEach(text => {
-                input.value = text;
-                addTask();
-            });
-            input.value = '';
-        };
     </script>
 </body>
 </html>
