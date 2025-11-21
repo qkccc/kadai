@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Tasks</title>
+    <style>
+        :root {
+            --primary: #6a11cb;
+            --secondary: #2575fc;
+            --glass: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --text: #333;
+            --text-light: #fff;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        /* 背景の装飾（光の玉） */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            animation: float 10s infinite ease-in-out;
+        }
+        .orb-1 { top: 10%; left: 20%; width: 300px; height: 300px; background: #ff9a9e; animation-delay: 0s; }
+        .orb-2 { bottom: 10%; right: 20%; width: 250px; height: 250px; background: #a18cd1; animation-delay: -5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* メインコンテナ（グラスモーフィズム） */
+        .app-container {
+            position: relative;
+            width: 400px;
+            max-width: 90%;
+            height: 600px;
+            background: var(--glass);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 1;
+        }
+
+        h1 {
+            color: var(--text-light);
+            font-weight: 200;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        /* 入力エリア */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 30px;
+            border: none;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: 0.3s;
+        }
+        input:focus { transform: scale(1.02); }
+
+        button#add-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: #fff;
+            color: var(--primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        button#add-btn:hover { transform: rotate(90deg) scale(1.1); }
+
+        /* タスクリスト */
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* スクロールバーのカスタマイズ */
+        ul::-webkit-scrollbar { width: 6px; }
+        ul::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+
+        li {
+            background: rgba(255, 255, 255, 0.7);
+            margin-bottom: 10px;
+            padding: 15px 20px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.3s;
+            cursor: pointer;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        li:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateX(5px);
+        }
+
+        li.completed {
+            background: rgba(255, 255, 255, 0.3);
+            text-decoration: line-through;
+            color: #666;
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        li:hover .delete-btn { opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="app-container">
+        <h1>TASKS</h1>
+        
+        <div class="input-group">
+            <input type="text" id="todo-input" placeholder="Add a new task...">
+            <button id="add-btn">+</button>
+        </div>
+
+        <ul id="todo-list">
+            </ul>
+    </div>
+
+    <script>
+        const input = document.getElementById('todo-input');
+        const addBtn = document.getElementById('add-btn');
+        const list = document.getElementById('todo-list');
+
+        // タスクを追加する機能
+        function addTask() {
+            const text = input.value.trim();
+            if (text === '') return;
+
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span>${text}</span>
+                <button class="delete-btn">×</button>
+            `;
+
+            // 完了の切り替え
+            li.addEventListener('click', (e) => {
+                if (e.target.className !== 'delete-btn') {
+                    li.classList.toggle('completed');
+                }
+            });
+
+            // 削除機能
+            li.querySelector('.delete-btn').addEventListener('click', () => {
+                li.style.opacity = '0';
+                li.style.transform = 'translateX(20px)';
+                setTimeout(() => li.remove(), 300);
+            });
+
+            list.prepend(li); // 新しいタスクを上に追加
+            input.value = '';
+            input.focus();
+        }
+
+        addBtn.addEventListener('click', addTask);
+
+        // Enterキーでも追加できるようにする
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addTask();
+        });
+
+        // サンプルタスク
+        window.onload = () => {
+            const samples = ["Buy coffee ☕️", "Design review", "Read a book"];
+            samples.forEach(text => {
+                input.value = text;
+                addTask();
+            });
+            input.value = '';
+        };
+    </script>
+</body>
+</html>
